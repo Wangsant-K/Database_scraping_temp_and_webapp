@@ -1,4 +1,16 @@
 import requests
+import os
+import selectorlib
+from datetime import datetime
+
+
+if not os.path.exists("data.txt"):
+    with open("data.txt", "w") as file:
+        pass
+
+if not os.path.exists("extract.yaml"):
+    with open("extract.yaml", "w") as file:
+        pass
 
 
 URL = "http://programmer100.pythonanywhere.com/"
@@ -14,5 +26,22 @@ def scrape(url):
     return source
 
 
+def extract(source):
+    extractor = selectorlib.Extractor.from_yaml_file("extract.yaml")
+    value = extractor.extract(source)["temperature"]
+    return value
+
+
+def store(extracted):
+    now_time = datetime.now().strftime("%y-%m-%d-%H-%M-%S")
+    with open("data.txt", "a") as file:
+        line = f"{now_time}, {extracted}\n"
+        print(line)
+        file.write(line)
+
+
 if __name__ == "__main__":
-    print(scrape(URL))
+    scraped = scrape(URL)
+    extracted = extract(scraped)
+    print(extracted)
+    store(extracted)
