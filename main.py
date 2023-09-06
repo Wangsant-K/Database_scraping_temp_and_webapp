@@ -1,17 +1,10 @@
 import requests
-import os
 import selectorlib
+import sqlite3
 from datetime import datetime
+import time
 
-
-if not os.path.exists("data.txt"):
-    with open("data.txt", "w") as file:
-        pass
-
-if not os.path.exists("extract.yaml"):
-    with open("extract.yaml", "w") as file:
-        pass
-
+connection = sqlite3.connect("data.db")
 
 URL = "http://programmer100.pythonanywhere.com/"
 HEADERS = {
@@ -34,14 +27,15 @@ def extract(source):
 
 def store(extracted):
     now_time = datetime.now().strftime("%y-%m-%d-%H-%M-%S")
-    with open("data.txt", "a") as file:
-        line = f"{now_time}, {extracted}\n"
-        print(line)
-        file.write(line)
+    cursor = connection.cursor()
+    cursor.execute("INSERT INTO temperatures VALUES(?, ?)", (now_time, extracted))
+    connection.commit()
 
 
 if __name__ == "__main__":
-    scraped = scrape(URL)
-    extracted = extract(scraped)
-    print(extracted)
-    store(extracted)
+    while True:
+        scraped = scrape(URL)
+        extracted = extract(scraped)
+        print(extracted)
+        store(extracted)
+        time.sleep(15)
